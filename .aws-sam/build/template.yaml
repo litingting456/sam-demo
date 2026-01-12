@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: OCR Lambda with AWS Textract
+Resources:
+  OcrFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: OcrFunction
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Policies:
+      - S3ReadPolicy:
+          BucketName: sam-demo-repo
+      - AmazonTextractFullAccess
+      Events:
+        S3Trigger:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: OcrBucket
+            Events: s3:ObjectCreated:*
+    Metadata:
+      SamResourceId: OcrFunction
+  SecondFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: SecondFunction
+      Handler: app2.lambda_handler
+      Runtime: python3.12
+      Policies:
+      - AWSLambdaBasicExecutionRole
+    Metadata:
+      SamResourceId: SecondFunction
+  OcrBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sam-demo-repo
+Outputs:
+  OcrFunctionArn:
+    Value:
+      Fn::GetAtt:
+      - OcrFunction
+      - Arn
+    Description: "OCR Lambda\u51FD\u6570\u7684ARN"
+  OcrBucketName:
+    Value:
+      Ref: OcrBucket
+    Description: "\u89E6\u53D1OCR\u7684S3\u6876\u540D\u79F0"
+  SecondFunctionArn:
+    Value:
+      Fn::GetAtt:
+      - SecondFunction
+      - Arn
+    Description: "\u7B2C\u4E8C\u4E2ALambda\u51FD\u6570\u7684ARN"
